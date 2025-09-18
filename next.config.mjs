@@ -9,6 +9,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Required for Replit development environment
+  experimental: {
+    allowedHosts: true,
+  },
   async headers() {
     return [
       {
