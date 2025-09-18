@@ -5,10 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Shield, MapPin, Users, Zap, Globe, Star, AlertTriangle, CheckCircle, Clock } from "lucide-react"
+import { CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import { useLanguage } from "@/components/language-provider"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { EnhancedLanguageSelector } from "@/components/enhanced-language-selector"
+import EnhancedLanguageSelectorNew from "@/components/enhanced-language-selector-new"
+import SOSEmergencyButton from "@/components/sos-emergency-button"
+import LiveLocationTracker from "@/components/live-location-tracker"
+import SupabaseAuth from "@/components/supabase-auth"
 
 // Particle component for background animation
 const Particle = ({ delay }: { delay: number }) => {
@@ -122,9 +126,8 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <EnhancedLanguageSelector
+            <EnhancedLanguageSelectorNew
               variant="dropdown"
-              showGoogleTranslate={true}
               showFlags={true}
               showNativeNames={true}
             />
@@ -232,6 +235,62 @@ export default function LandingPage() {
               </div>
             </Card>
           </div>
+        </div>
+      </section>
+
+      {/* Live Demo Section - New Features */}
+      <section className="relative z-10 container mx-auto px-4 py-20">
+        <div className="text-center mb-16">
+          <Badge className="mb-6 glassmorphism bg-secondary/30 text-secondary-foreground border-secondary/50 animate-pulse-glow">
+            <Zap className="h-4 w-4 mr-2" />
+            Live Prototype Features
+          </Badge>
+          <h2 className="font-serif font-bold text-4xl mb-4 text-foreground">Suraksha Setu Demo</h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
+            Experience the core safety features in action - live location tracking, emergency SOS, and multilingual support.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+          {/* SOS Emergency Button */}
+          <Card className="glassmorphism bg-card/50 border-border/50 p-6 text-center">
+            <h3 className="font-serif font-bold text-xl mb-4">Emergency SOS</h3>
+            <p className="text-muted-foreground mb-6 text-sm">
+              Instant emergency alert with location sharing
+            </p>
+            <SOSEmergencyButton className="mx-auto" />
+          </Card>
+
+          {/* Live Location Tracker */}
+          <LiveLocationTracker className="lg:col-span-2" showMap={true} />
+        </div>
+
+        {/* Authentication Demo */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <SupabaseAuth />
+          
+          {/* Language Demo */}
+          <Card className="glassmorphism bg-card/50 border-border/50 p-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Multilingual Support
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Choose your preferred language from 5+ Indian languages with native script support:
+              </p>
+              <EnhancedLanguageSelectorNew 
+                variant="inline" 
+                showFlags={true}
+                showNativeNames={true}
+              />
+              <div className="text-xs text-muted-foreground pt-2">
+                Language preference saved in localStorage
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 

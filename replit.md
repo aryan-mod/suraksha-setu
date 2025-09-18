@@ -1,10 +1,57 @@
-# SafeTour - Tourist Safety System
+# Suraksha Setu - Smart India Hackathon Tourist Safety Prototype
 
 ## Overview
 
-SafeTour is an AI-powered tourist safety monitoring system that provides comprehensive protection for tourists through real-time location tracking, emergency response capabilities, and digital identity management. The application combines modern web technologies with intelligent safety features to create a robust platform for tourist security.
+**Suraksha Setu** (सुरक्षा सेतु) is a comprehensive tourist safety web application prototype developed for the Smart India Hackathon (SIH). The name "Suraksha Setu" translates to "Safety Bridge" in Hindi, symbolizing our mission to bridge the gap between tourists and their safety needs through technology.
 
-The system offers blockchain-based digital tourist IDs, real-time geofencing and safety zone monitoring, AI-powered chatbot assistance with multilingual support, emergency notification systems, and comprehensive admin dashboards for monitoring and management.
+This application provides real-time safety monitoring, emergency response capabilities, and multilingual support specifically designed for India's diverse tourism landscape. The prototype demonstrates core safety features including SOS emergency alerts, live location tracking, role-based authentication, and comprehensive multilingual support across 5+ Indian languages.
+
+## Recent Development Progress (September 2025)
+
+### ✅ Core Features Implemented
+
+1. **SOS Emergency Button System**
+   - Instant emergency alert with visual animations
+   - Real-time location sharing with authorities
+   - Database storage of emergency events via Supabase
+   - Confirmation modal with emergency contact information
+
+2. **Live Location Tracking**
+   - HTML5 Geolocation API integration
+   - Real-time location updates every 5 seconds
+   - Accuracy-based quality indicators
+   - Database persistence for location history
+   - Movement simulation for demonstration purposes
+
+3. **Comprehensive Multilingual Support**
+   - i18next integration with React
+   - 5 Indian languages: English, Hindi, Marathi, Tamil, Bengali
+   - Native script support with flag-based language selector
+   - LocalStorage persistence for user language preferences
+   - Complete translation system with structured JSON files
+
+4. **Supabase Authentication System**
+   - Email/password authentication
+   - Real-time user session management
+   - Role-based user profiles (tourist, police, admin)
+   - User profile creation and management
+   - Secure authentication state handling
+
+5. **Enhanced User Interface**
+   - Modern glassmorphism design with dark theme
+   - Responsive layout optimized for mobile devices
+   - Interactive language selector with flag icons
+   - Visual feedback systems and loading states
+   - Accessibility-focused component design
+
+### 🔧 Technical Architecture Improvements
+
+- **Database Integration**: Full Supabase integration with PostgreSQL backend
+- **Real-time Features**: Live location updates and emergency alert storage
+- **State Management**: React hooks-based state management with localStorage persistence
+- **Component Architecture**: Modular, reusable component design
+- **Type Safety**: TypeScript implementation throughout the application
+- **Error Handling**: Comprehensive error handling and fallback systems
 
 ## User Preferences
 

@@ -1,0 +1,64 @@
+{
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "admin": "Admin",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "profile": "Profile"
+  },
+  "hero": {
+    "title": "Smart Tourist Safety",
+    "subtitle": "Monitoring System",
+    "description": "Experience next-generation tourist safety with AI-powered monitoring, blockchain-based digital IDs, and real-time emergency response systems designed to keep you protected wherever you travel.",
+    "generateId": "Generate Your Tourist ID",
+    "viewDashboard": "View Dashboard"
+  },
+  "features": {
+    "title": "Advanced Safety Features",
+    "subtitle": "Cutting-edge technology designed to provide comprehensive protection and peace of mind for modern travelers."
+  },
+  "stats": {
+    "protectedTourists": "Protected Tourists",
+    "safeZones": "Safe Zones",
+    "safetyScore": "Safety Score"
+  },
+  "emergency": {
+    "sos": "SOS Emergency",
+    "alertSent": "Emergency Alert Sent!",
+    "help": "Help is on the way",
+    "location": "Your location has been shared with authorities"
+  },
+  "location": {
+    "tracking": "Live Location Tracking",
+    "accuracy": "Accuracy",
+    "updating": "Updating location...",
+    "error": "Location access denied"
+  },
+  "alerts": {
+    "title": "Safety Alerts",
+    "noAlerts": "No alerts at this time",
+    "geofenceExit": "You have left the safe zone",
+    "routeDeviation": "Route deviation detected"
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember Me"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error occurred",
+    "success": "Success",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close"
+  }
+}

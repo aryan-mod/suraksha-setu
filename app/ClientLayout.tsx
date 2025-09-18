@@ -5,6 +5,7 @@ import { Playfair_Display, Source_Sans_3 as Source_Sans_Pro } from "next/font/go
 import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
+import "@/lib/i18n"
 import { Suspense } from "react"
 import { LanguageProvider } from "@/components/language-provider"
 import { ThemeProvider } from "@/components/theme-provider"

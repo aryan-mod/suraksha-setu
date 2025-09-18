@@ -1,0 +1,50 @@
+I am building a **prototype web app called Suraksha Setu** for SIH.  
+This prototype should focus mainly on **frontend functionality** with **lightweight backend** using **Supabase/Firebase only**. No heavy blockchain or AI backend is required for this prototype.
+
+Please implement and fix the following features:
+
+🟢 Immediate Fixes (Frontend + Lightweight Backend)
+
+1. **Multilingual Support**
+   - Integrate i18next properly.
+   - Add JSON files for Hindi, Marathi, Tamil, Bengali.
+   - Add language dropdown with flag icons.
+   - Save last selected language in LocalStorage.
+
+2. **Live Location**
+   - Use Geolocation API to fetch user’s live location.
+   - Show marker + accuracy circle on Google Maps / Leaflet map.
+   - Refresh location every 5 seconds (simulate dummy movement if real location not available).
+
+3. **SOS Button**
+   - Add a big red SOS button with Lottie animation (flashing alert).
+   - On click, show a modal: “Emergency Alert Sent!”  
+   - Save SOS alert in **Supabase/Firebase** (timestamp + user info).  
+   - For now, SMS/email can be simulated with frontend alert only.
+
+4. **Alert Section**
+   - Fix drawer/modal so it opens smoothly.
+   - Show scrollable list of alerts with timestamps from Supabase/Firebase.
+   - Add simple geofencing demo: if user goes outside a fixed polygon, show frontend popup alert.
+
+5. **Authentication**
+   - Implement login/signup using **Supabase/Firebase Auth**.
+   - Role-based access control: Tourist → App, Police → Dashboard, Admin → Tourism Panel.
+   - Session persistence and logout functionality.
+
+🟡 Optional Advanced (Frontend-ready placeholders)
+- **Digital ID**: static QR code + hologram animation (Blockchain integration will be later).
+- **Police/Tourism Dashboard**: dummy heatmap, clustered map, charts using frontend + Supabase data.
+- **AI Anomaly Detection**: simulate “route deviation detected” alert if tourist moves 500m away from predefined route.
+- Accessibility: big font, high contrast mode, ARIA labels.
+
+🔴 Restrictions
+- No heavy backend (Blockchain, AI computation) for prototype.
+- SMS/email can be simulated.
+- Focus on clean frontend + lightweight Supabase/Firebase integration.
+
+⚡ Requirements
+- Use **React + Next.js + TailwindCSS**.
+- Code should be clean, modular, and responsive (mobile + desktop).
+- Comment clearly where backend integration will be needed later.
+- Provide a summary of all files modified or added.
