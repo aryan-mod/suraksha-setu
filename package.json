@@ -6,7 +6,7 @@
     "build": "next build",
     "dev": "next dev -H 0.0.0.0 -p 5000",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start -H 0.0.0.0 -p 5000"
   },
   "dependencies": {
     "@google/generative-ai": "latest",
