@@ -11,7 +11,7 @@ const nextConfig = {
   },
   // Required for Replit development environment
   experimental: {
-    allowedHosts: true,
+    serverComponentsExternalPackages: [],
   },
   async headers() {
     return [
