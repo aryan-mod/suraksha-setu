@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Shield, QrCode, User, Phone, Calendar, Download, Share2, RotateCcw, Star, Crown, Sparkles } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
 
 interface TouristIdData {
   id: string
@@ -27,6 +28,7 @@ interface DigitalTouristIdProps {
 
 export function DigitalTouristId({ data, showActions = true }: DigitalTouristIdProps) {
   const [isFlipped, setIsFlipped] = useState(false)
+  const { translate } = useLanguage()
 
   const handleFlip = () => {
     setIsFlipped(!isFlipped)
@@ -70,8 +72,10 @@ export function DigitalTouristId({ data, showActions = true }: DigitalTouristIdP
                     <Crown className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-primary tracking-wider font-serif">PREMIUM TOURIST ID</p>
-                    <p className="text-xs text-secondary font-medium">Blockchain Verified</p>
+                    <p className="text-sm font-bold text-primary tracking-wider font-serif">
+                      {translate("id.digital").toUpperCase()}
+                    </p>
+                    <p className="text-xs text-secondary font-medium">{translate("id.blockchain")}</p>
                   </div>
                 </div>
                 <Badge className={`${getStatusColor(data.status)} border-primary/30 font-semibold`}>
@@ -107,7 +111,7 @@ export function DigitalTouristId({ data, showActions = true }: DigitalTouristIdP
                   <p className="text-sm text-secondary font-medium mb-2">{data.nationality}</p>
                   <div className="flex items-center gap-2 text-xs">
                     <Calendar className="h-3 w-3 text-primary" />
-                    <span className="text-muted-foreground">Valid until</span>
+                    <span className="text-muted-foreground">{translate("common.validUntil")}</span>
                     <span className="font-semibold text-primary">{data.expiryDate}</span>
                   </div>
                 </div>
@@ -115,7 +119,7 @@ export function DigitalTouristId({ data, showActions = true }: DigitalTouristIdP
 
               <div className="flex items-center justify-between relative z-10">
                 <div className="text-xs">
-                  <p className="text-muted-foreground mb-1">Tourist ID</p>
+                  <p className="text-muted-foreground mb-1">{translate("id.touristId")}</p>
                   <p className="font-mono text-primary font-bold tracking-wider bg-primary/10 px-3 py-1 rounded-lg border border-primary/20">
                     {data.id}
                   </p>
@@ -126,7 +130,7 @@ export function DigitalTouristId({ data, showActions = true }: DigitalTouristIdP
                   </div>
                   <div className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full animate-pulse border border-card" />
                   <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-                    <p className="text-xs text-primary font-medium">Scan to verify</p>
+                    <p className="text-xs text-primary font-medium">{translate("id.scanToVerify")}</p>
                   </div>
                 </div>
               </div>
@@ -149,7 +153,9 @@ export function DigitalTouristId({ data, showActions = true }: DigitalTouristIdP
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <Phone className="h-5 w-5 text-primary animate-pulse" />
-                    <span className="text-sm font-bold text-primary font-serif tracking-wider">EMERGENCY CONTACTS</span>
+                    <span className="text-sm font-bold text-primary font-serif tracking-wider">
+                      {translate("emergency.contacts").toUpperCase()}
+                    </span>
                   </div>
                   <Shield className="h-5 w-5 text-secondary" />
                 </div>
@@ -158,7 +164,9 @@ export function DigitalTouristId({ data, showActions = true }: DigitalTouristIdP
                   <div className="glassmorphism-gold p-3 rounded-xl border border-primary/20">
                     <div className="flex items-center gap-2 mb-1">
                       <User className="h-4 w-4 text-primary" />
-                      <span className="text-xs text-secondary font-medium">Primary Contact</span>
+                      <span className="text-xs text-secondary font-medium">
+                        {translate("emergency.primaryContact")}
+                      </span>
                     </div>
                     <p className="font-bold text-primary text-sm">{data.emergencyContact}</p>
                     <p className="text-muted-foreground text-xs font-mono">{data.emergencyPhone}</p>
@@ -167,9 +175,9 @@ export function DigitalTouristId({ data, showActions = true }: DigitalTouristIdP
                   <div className="glassmorphism-gold p-3 rounded-xl border border-secondary/20">
                     <div className="flex items-center gap-2 mb-1">
                       <Phone className="h-4 w-4 text-secondary" />
-                      <span className="text-xs text-primary font-medium">Tourist Helpline</span>
+                      <span className="text-xs text-primary font-medium">{translate("emergency.tourist")}</span>
                     </div>
-                    <p className="font-bold text-secondary text-sm">24/7 Emergency Support</p>
+                    <p className="font-bold text-secondary text-sm">{translate("emergency.support24x7")}</p>
                     <p className="text-muted-foreground text-xs font-mono">+91-1363</p>
                   </div>
                 </div>
@@ -179,23 +187,23 @@ export function DigitalTouristId({ data, showActions = true }: DigitalTouristIdP
                 <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center mx-auto mb-3 border-2 border-primary/30 shadow-xl">
                   <QrCode className="h-16 w-16 text-foreground" />
                 </div>
-                <p className="text-xs text-primary font-medium mb-1">Emergency QR Code</p>
-                <p className="text-xs text-muted-foreground">Scan for instant emergency contact</p>
+                <p className="text-xs text-primary font-medium mb-1">{translate("emergency.qrCode")}</p>
+                <p className="text-xs text-muted-foreground">{translate("emergency.scanForContact")}</p>
               </div>
 
               <div className="relative z-10 space-y-2">
                 <div className="flex justify-between items-center text-xs glassmorphism-gold p-2 rounded-lg border border-primary/20">
-                  <span className="text-muted-foreground">Passport:</span>
+                  <span className="text-muted-foreground">{translate("common.passport")}:</span>
                   <span className="font-mono text-primary font-bold">{data.passportNumber}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs glassmorphism-gold p-2 rounded-lg border border-secondary/20">
-                  <span className="text-muted-foreground">Issued:</span>
+                  <span className="text-muted-foreground">{translate("id.issued")}:</span>
                   <span className="font-mono text-secondary font-bold">{data.issueDate}</span>
                 </div>
                 <div className="text-center">
                   <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">
                     <Shield className="h-2 w-2 mr-1" />
-                    Blockchain Secured
+                    {translate("id.blockchain")}
                   </Badge>
                 </div>
               </div>
@@ -213,7 +221,7 @@ export function DigitalTouristId({ data, showActions = true }: DigitalTouristIdP
             className="flex-1 glassmorphism-gold border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 bg-transparent"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
-            Flip Card
+            {translate("common.flipCard")}
           </Button>
 
           <Button

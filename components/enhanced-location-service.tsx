@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { createClient } from "@/lib/supabase/client"
+import { useLanguage } from "@/components/language-provider"
 import {
   MapPin,
   Navigation,
@@ -75,6 +76,8 @@ export function EnhancedLocationService({
   const [safeZones, setSafeZones] = useState<SafeZone[]>([])
   const [locationStats, setLocationStats] = useState<any>(null)
   const [isStoringToDatabase, setIsStoringToDatabase] = useState(false)
+
+  const { translate } = useLanguage()
 
   const supabase = createClient()
 
@@ -483,18 +486,18 @@ export function EnhancedLocationService({
       <CardHeader>
         <CardTitle className="font-serif flex items-center gap-2">
           <Satellite className="h-5 w-5 text-primary" />
-          Enhanced Location Service
+          {translate("location.enhancedService")}
           <div className="flex items-center gap-2 ml-auto">
             {enableDatabaseStorage && (
               <Badge
                 className={`${isStoringToDatabase ? "bg-blue-500/20 text-blue-600 animate-pulse" : "bg-secondary/20 text-secondary"}`}
               >
                 <Database className="h-3 w-3 mr-1" />
-                {isStoringToDatabase ? "Syncing" : "DB"}
+                {isStoringToDatabase ? translate("common.syncing") : translate("common.database")}
               </Badge>
             )}
             <Badge className={`${isTracking ? "bg-secondary/20 text-secondary" : "bg-muted/50 text-muted-foreground"}`}>
-              {isTracking ? "Active" : "Inactive"}
+              {isTracking ? translate("status.active") : translate("status.inactive")}
             </Badge>
           </div>
         </CardTitle>
@@ -504,9 +507,7 @@ export function EnhancedLocationService({
         {permissionStatus === "denied" && (
           <Alert className="border-destructive/50 bg-destructive/10">
             <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              Location permission denied. Please enable location access in your browser settings to use this feature.
-            </AlertDescription>
+            <AlertDescription>{translate("location.permissionDenied")}</AlertDescription>
           </Alert>
         )}
 
@@ -524,22 +525,30 @@ export function EnhancedLocationService({
             <div className="p-3 glassmorphism bg-primary/10 border-primary/20 rounded-lg">
               <div className="flex items-center gap-2 mb-1">
                 <TrendingUp className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold">Weekly Stats</span>
+                <span className="text-sm font-semibold">{translate("location.weeklyStats")}</span>
               </div>
               <div className="text-xs">
-                <div>{locationStats.total_locations} locations tracked</div>
-                <div>{locationStats.distance_traveled_km?.toFixed(1)}km traveled</div>
+                <div>
+                  {locationStats.total_locations} {translate("location.locationsTracked")}
+                </div>
+                <div>
+                  {locationStats.distance_traveled_km?.toFixed(1)}km {translate("location.traveled")}
+                </div>
               </div>
             </div>
 
             <div className="p-3 glassmorphism bg-secondary/10 border-secondary/20 rounded-lg">
               <div className="flex items-center gap-2 mb-1">
                 <CheckCircle className="h-4 w-4 text-secondary" />
-                <span className="text-sm font-semibold">Zone Visits</span>
+                <span className="text-sm font-semibold">{translate("location.zoneVisits")}</span>
               </div>
               <div className="text-xs">
-                <div>{locationStats.safe_zone_visits} safe zones</div>
-                <div>{locationStats.caution_zone_visits} caution zones</div>
+                <div>
+                  {locationStats.safe_zone_visits} {translate("safety.safe")} {translate("safety.zone")}
+                </div>
+                <div>
+                  {locationStats.caution_zone_visits} {translate("safety.caution")} {translate("safety.zone")}
+                </div>
               </div>
             </div>
           </div>
@@ -552,7 +561,7 @@ export function EnhancedLocationService({
               <div className="p-3 glassmorphism bg-primary/10 border-primary/20 rounded-lg">
                 <div className="flex items-center gap-2 mb-1">
                   <MapPin className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-semibold">Coordinates</span>
+                  <span className="text-sm font-semibold">{translate("location.coordinates")}</span>
                 </div>
                 <div className="text-xs font-mono">
                   <div>{formatCoordinate(currentLocation.latitude)}°N</div>
@@ -563,18 +572,18 @@ export function EnhancedLocationService({
               <div className="p-3 glassmorphism bg-secondary/10 border-secondary/20 rounded-lg">
                 <div className="flex items-center gap-2 mb-1">
                   <Crosshair className="h-4 w-4 text-secondary" />
-                  <span className="text-sm font-semibold">Accuracy</span>
+                  <span className="text-sm font-semibold">{translate("location.accuracy")}</span>
                 </div>
                 <div className="text-xs">
                   <div>{formatAccuracy(currentLocation.accuracy)}</div>
                   <div className="text-muted-foreground">
                     {currentLocation.accuracy < 10
-                      ? "Excellent"
+                      ? translate("location.excellent")
                       : currentLocation.accuracy < 50
-                        ? "Good"
+                        ? translate("location.good")
                         : currentLocation.accuracy < 100
-                          ? "Fair"
-                          : "Poor"}
+                          ? translate("location.fair")
+                          : translate("location.poor")}
                   </div>
                 </div>
               </div>
@@ -584,19 +593,19 @@ export function EnhancedLocationService({
             <div className="grid grid-cols-3 gap-2 text-xs">
               {currentLocation.altitude && (
                 <div className="text-center p-2 glassmorphism bg-card/30 border-border/50 rounded">
-                  <div className="font-semibold">Altitude</div>
+                  <div className="font-semibold">{translate("location.altitude")}</div>
                   <div>{Math.round(currentLocation.altitude)}m</div>
                 </div>
               )}
               {currentLocation.speed && (
                 <div className="text-center p-2 glassmorphism bg-card/30 border-border/50 rounded">
-                  <div className="font-semibold">Speed</div>
+                  <div className="font-semibold">{translate("location.speed")}</div>
                   <div>{(currentLocation.speed * 3.6).toFixed(1)} km/h</div>
                 </div>
               )}
               {currentLocation.heading && (
                 <div className="text-center p-2 glassmorphism bg-card/30 border-border/50 rounded">
-                  <div className="font-semibold">Heading</div>
+                  <div className="font-semibold">{translate("location.heading")}</div>
                   <div>{Math.round(currentLocation.heading)}°</div>
                 </div>
               )}
@@ -625,7 +634,9 @@ export function EnhancedLocationService({
                       : "text-destructive"
                 }`}
               />
-              <span className="font-semibold">Current Zone: {currentZone.name}</span>
+              <span className="font-semibold">
+                {translate("location.currentZone")}: {currentZone.name}
+              </span>
               {currentZone.distance_meters !== undefined && (
                 <Badge variant="outline" className="text-xs">
                   {currentZone.distance_meters < 1000
@@ -643,7 +654,7 @@ export function EnhancedLocationService({
           <div>
             <h4 className="font-semibold mb-2 flex items-center gap-2">
               <Navigation className="h-4 w-4" />
-              Nearby Safe Zones
+              {translate("location.nearbySafeZones")}
             </h4>
             <div className="space-y-2">
               {nearbyZones.map((zone) => (
@@ -679,12 +690,12 @@ export function EnhancedLocationService({
             {isTracking ? (
               <>
                 <WifiOff className="h-4 w-4 mr-2" />
-                Stop Tracking
+                {translate("location.stopTracking")}
               </>
             ) : (
               <>
                 <Wifi className="h-4 w-4 mr-2" />
-                Start Tracking
+                {translate("location.startTracking")}
               </>
             )}
           </Button>
@@ -696,13 +707,13 @@ export function EnhancedLocationService({
             className="glassmorphism bg-card/50 border-border/50"
           >
             <Crosshair className="h-4 w-4 mr-2" />
-            Get Location
+            {translate("location.getLocation")}
           </Button>
 
           {currentLocation && (
             <Button variant="outline" onClick={shareLocation} className="glassmorphism bg-card/50 border-border/50">
               <Route className="h-4 w-4 mr-2" />
-              Share
+              {translate("common.share")}
             </Button>
           )}
         </div>
@@ -710,17 +721,19 @@ export function EnhancedLocationService({
         {/* Settings */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">High Accuracy GPS</span>
+            <span className="text-muted-foreground">{translate("location.highAccuracyGPS")}</span>
             <Button variant="ghost" size="sm" onClick={() => setIsHighAccuracy(!isHighAccuracy)} className="h-8 px-2">
-              <Badge variant={isHighAccuracy ? "default" : "outline"}>{isHighAccuracy ? "ON" : "OFF"}</Badge>
+              <Badge variant={isHighAccuracy ? "default" : "outline"}>
+                {isHighAccuracy ? translate("common.on") : translate("common.off")}
+              </Badge>
             </Button>
           </div>
 
           {userId && (
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Database Storage</span>
+              <span className="text-muted-foreground">{translate("location.databaseStorage")}</span>
               <Badge variant={enableDatabaseStorage ? "default" : "outline"}>
-                {enableDatabaseStorage ? "ENABLED" : "DISABLED"}
+                {enableDatabaseStorage ? translate("common.enabled") : translate("common.disabled")}
               </Badge>
             </div>
           )}
@@ -730,9 +743,11 @@ export function EnhancedLocationService({
         {locationHistory.length > 0 && (
           <div className="text-xs text-muted-foreground text-center">
             <Clock className="h-3 w-3 inline mr-1" />
-            {locationHistory.length} location updates recorded
+            {locationHistory.length} {translate("location.updatesRecorded")}
             {currentLocation && (
-              <span className="ml-2">Last update: {new Date(currentLocation.timestamp).toLocaleTimeString()}</span>
+              <span className="ml-2">
+                {translate("location.lastUpdate")}: {new Date(currentLocation.timestamp).toLocaleTimeString()}
+              </span>
             )}
           </div>
         )}
