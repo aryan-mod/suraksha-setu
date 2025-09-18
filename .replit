@@ -5,3 +5,4 @@ channel = "stable-25_05"
 
 [agent]
 expertMode = true
+integrations = ["javascript_supabase:1.0.0"]
