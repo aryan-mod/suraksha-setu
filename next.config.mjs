@@ -24,7 +24,11 @@ const nextConfig = {
   // Experimental optimizations
   experimental: {
     serverComponentsExternalPackages: [],
+    optimizeCss: true,
     gzipSize: true,
+    // Enable modern features
+    browsersListForSwc: true,
+    legacyBrowsers: false,
   },
   
   // Bundle optimization
