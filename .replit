@@ -8,28 +8,6 @@ expertMode = true
 integrations = ["javascript_supabase:1.0.0"]
 
 [workflows]
-runButton = "Project"
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Tourist Safety App"
-
-[[workflows.workflow]]
-name = "Tourist Safety App"
-author = "agent"
-
-[workflows.workflow.metadata]
-outputType = "webview"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npx next dev -H 0.0.0.0 -p 5000"
-waitForPort = 5000
 
 [[ports]]
 localPort = 5000
