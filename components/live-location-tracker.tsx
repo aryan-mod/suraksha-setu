@@ -7,6 +7,20 @@ import { Badge } from '@/components/ui/badge'
 import { MapPin, Navigation, Satellite, Clock, RefreshCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { createClient } from '@/lib/supabase/client'
+import dynamic from 'next/dynamic'
+
+// Dynamically import LeafletMap to avoid SSR issues
+const LeafletMap = dynamic(() => import('./leaflet-map'), { 
+  ssr: false,
+  loading: () => (
+    <div className="h-40 bg-muted rounded-lg flex items-center justify-center">
+      <div className="text-center text-muted-foreground">
+        <MapPin className="h-8 w-8 mx-auto mb-2 animate-pulse" />
+        <p className="text-sm">Loading Map...</p>
+      </div>
+    </div>
+  )
+})
 
 interface LocationData {
   latitude: number
@@ -30,6 +44,7 @@ export default function LiveLocationTracker({ className, showMap = true }: LiveL
   const [error, setError] = useState<string | null>(null)
   const [updateCount, setUpdateCount] = useState(0)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const watchIdRef = useRef<number | null>(null)
   const supabase = createClient()
 
   // Simulate movement for demo purposes when real location doesn't change
@@ -90,23 +105,27 @@ export default function LiveLocationTracker({ className, showMap = true }: LiveL
       setUpdateCount(prev => prev + 1)
       setError(null)
 
-      // Save location to Supabase if available
+      // Save location to Supabase if available and user is authenticated
       if (supabase) {
         try {
-          const { error } = await supabase
-            .from('location_tracking')
-            .insert([{
-              latitude: newLocation.latitude,
-              longitude: newLocation.longitude,
-              accuracy: newLocation.accuracy,
-              timestamp: new Date(newLocation.timestamp).toISOString(),
-              altitude: newLocation.altitude,
-              heading: newLocation.heading,
-              speed: newLocation.speed,
-            }])
-          
-          if (error) {
-            console.warn('Could not save to Supabase:', error)
+          const { data: { user } } = await supabase.auth.getUser()
+          if (user) {
+            const { error } = await supabase
+              .from('location_tracking')
+              .insert([{
+                user_id: user.id,
+                latitude: newLocation.latitude,
+                longitude: newLocation.longitude,
+                accuracy: newLocation.accuracy,
+                timestamp: new Date(newLocation.timestamp).toISOString(),
+                altitude: newLocation.altitude,
+                heading: newLocation.heading,
+                speed: newLocation.speed,
+              }])
+            
+            if (error) {
+              console.warn('Could not save to Supabase:', error)
+            }
           }
         } catch (dbError) {
           console.warn('Database error:', dbError)
@@ -125,14 +144,86 @@ export default function LiveLocationTracker({ className, showMap = true }: LiveL
     // Get initial location
     await updateLocation()
     
-    // Update every 5 seconds
+    // Use watchPosition for more efficient tracking
+    if ("geolocation" in navigator) {
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        (position) => {
+          const locationData: LocationData = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            timestamp: Date.now(),
+            altitude: position.coords.altitude || undefined,
+            heading: position.coords.heading || undefined,
+            speed: position.coords.speed || undefined,
+          }
+
+          // Apply simulation if needed for demo
+          let newLocation = locationData
+          if (location && 
+              Math.abs(newLocation.latitude - location.latitude) < 0.00001 &&
+              Math.abs(newLocation.longitude - location.longitude) < 0.00001) {
+            newLocation = simulateMovement(newLocation)
+          }
+
+          setLocation(newLocation)
+          setUpdateCount(prev => prev + 1)
+          setError(null)
+
+          // Save location to Supabase if available and user is authenticated
+          if (supabase) {
+            supabase.auth.getUser().then(({ data: { user } }) => {
+              if (user) {
+                supabase
+                  .from('location_tracking')
+                  .insert([{
+                    user_id: user.id,
+                    latitude: newLocation.latitude,
+                    longitude: newLocation.longitude,
+                    accuracy: newLocation.accuracy,
+                    timestamp: new Date(newLocation.timestamp).toISOString(),
+                    altitude: newLocation.altitude,
+                    heading: newLocation.heading,
+                    speed: newLocation.speed,
+                  }])
+                  .then(({ error }) => {
+                    if (error) {
+                      console.warn('Could not save to Supabase:', error)
+                    }
+                  })
+              }
+            }).catch(console.warn)
+          }
+        },
+        (error) => {
+          setError(error.message)
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      )
+    }
+    
+    // Fallback: Update every 5 seconds if watchPosition fails
     intervalRef.current = setInterval(() => {
-      updateLocation()
+      if (!watchIdRef.current) {
+        updateLocation()
+      }
     }, 5000)
   }
 
   const stopTracking = () => {
     setIsTracking(false)
+    
+    // Clear watchPosition
+    if (watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current)
+      watchIdRef.current = null
+    }
+    
+    // Clear interval fallback
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
       intervalRef.current = null
@@ -141,6 +232,9 @@ export default function LiveLocationTracker({ className, showMap = true }: LiveL
 
   useEffect(() => {
     return () => {
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current)
+      }
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
       }
@@ -204,13 +298,15 @@ export default function LiveLocationTracker({ className, showMap = true }: LiveL
             </div>
 
             {showMap && (
-              <div className="h-40 bg-muted rounded-lg flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <MapPin className="h-8 w-8 mx-auto mb-2" />
-                  <p className="text-sm">Interactive Map</p>
-                  <p className="text-xs">(Google Maps / Leaflet integration)</p>
-                </div>
-              </div>
+              <LeafletMap
+                latitude={location.latitude}
+                longitude={location.longitude}
+                accuracy={location.accuracy}
+                height="160px"
+                zoom={16}
+                showAccuracyCircle={true}
+                className="rounded-lg"
+              />
             )}
 
             <div className="flex items-center justify-between text-xs text-muted-foreground">
