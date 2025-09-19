@@ -3,6 +3,115 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import L from 'leaflet'
 import 'leaflet.heat'
+import LeafletMap from './leaflet-map'
+
+// Leaflet Heatmap Component
+const LeafletHeatmap = ({ zones, height = "24rem" }: { zones: ZoneHeatmapData[], height?: string }) => {
+  const mapRef = useRef<HTMLDivElement>(null)
+  const leafletMapRef = useRef<any>(null)
+  const heatLayerRef = useRef<any>(null)
+  const markersLayerRef = useRef<any>(null)
+
+  useEffect(() => {
+    if (!mapRef.current || leafletMapRef.current) return
+
+    // Initialize Leaflet map
+    leafletMapRef.current = L.map(mapRef.current, {
+      center: [22.7196, 75.8577], // Central India coordinates
+      zoom: 6,
+      zoomControl: true,
+    })
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(leafletMapRef.current)
+
+    return () => {
+      if (leafletMapRef.current) {
+        leafletMapRef.current.remove()
+        leafletMapRef.current = null
+        heatLayerRef.current = null
+        markersLayerRef.current = null
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!leafletMapRef.current || !zones.length) return
+
+    // Remove existing heat layer and markers
+    if (heatLayerRef.current) {
+      leafletMapRef.current.removeLayer(heatLayerRef.current)
+    }
+    if (markersLayerRef.current) {
+      leafletMapRef.current.removeLayer(markersLayerRef.current)
+    }
+    
+    // Create new markers layer group
+    markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current)
+
+    // Convert zones to heat points: [lat, lng, intensity]
+    const heatPoints: [number, number, number][] = zones.map(zone => [
+      zone.latitude,
+      zone.longitude,
+      zone.intensity
+    ])
+
+    // Create heat layer with Leaflet.heat
+    heatLayerRef.current = (L as any).heatLayer(heatPoints, {
+      radius: 25,
+      blur: 15,
+      maxZoom: 17,
+      gradient: {
+        0.0: '#313695',
+        0.1: '#4575b4', 
+        0.2: '#74add1',
+        0.3: '#abd9e9',
+        0.4: '#e0f3f8',
+        0.5: '#ffffcc',
+        0.6: '#fee090',
+        0.7: '#fdae61',
+        0.8: '#f46d43',
+        0.9: '#d73027',
+        1.0: '#a50026'
+      }
+    }).addTo(leafletMapRef.current)
+
+    // Add zone markers to the layer group
+    zones.forEach(zone => {
+      const color = zone.status === 'safe' ? '#10b981' : 
+                   zone.status === 'caution' ? '#f59e0b' : '#ef4444'
+      
+      const marker = L.circleMarker([zone.latitude, zone.longitude], {
+        radius: Math.max(8, zone.tourist_count / 2),
+        fillColor: color,
+        color: '#ffffff',
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.8
+      }).addTo(markersLayerRef.current)
+
+      marker.bindPopup(`
+        <div class="p-2">
+          <h4 class="font-semibold">${zone.zone_name}</h4>
+          <p class="text-sm text-gray-600">${zone.zone_description}</p>
+          <p class="text-sm">Status: <span class="font-medium" style="color: ${color}">${zone.status}</span></p>
+          <p class="text-sm">Tourists: ${zone.tourist_count}</p>
+          <p class="text-sm">Safety Score: ${zone.safety_score.toFixed(0)}%</p>
+        </div>
+      `)
+    })
+  }, [zones])
+
+  return (
+    <div 
+      ref={mapRef} 
+      className="w-full rounded-lg"
+      style={{ height }}
+    />
+  )
+}
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -266,34 +375,12 @@ export function RealTimeHeatmap({
           {type === "zones" ? (
             // Zone-based heatmap view
             <div className="space-y-4">
-              {/* Visual map representation */}
-              <div className="relative w-full h-96 bg-gradient-to-br from-blue-100 to-green-100 rounded-lg overflow-hidden border-2 border-border/20">
-                <div className="absolute inset-0 opacity-20">
-                  <div className="w-full h-full bg-gradient-to-br from-blue-200 via-green-200 to-yellow-200"></div>
-                </div>
-
-                {(heatmapData as ZoneHeatmapData[]).map((zone, index) => (
-                  <div
-                    key={zone.zone_id}
-                    className={`
-                      absolute rounded-full cursor-pointer transition-all duration-300 hover:scale-110
-                      ${getStatusColor(zone.status)} border-2
-                    `}
-                    style={{
-                      left: `${(index % 5) * 20 + 10}%`,
-                      top: `${Math.floor(index / 5) * 25 + 15}%`,
-                      width: `${Math.max(30, zone.intensity * 80)}px`,
-                      height: `${Math.max(30, zone.intensity * 80)}px`,
-                      transform: "translate(-50%, -50%)",
-                    }}
-                    title={`${zone.zone_name}: ${zone.tourist_count} tourists, ${zone.safety_score.toFixed(0)}% safe`}
-                  >
-                    <div className="absolute inset-0 rounded-full animate-ping opacity-30 bg-current"></div>
-                    <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-xs">
-                      {zone.tourist_count}
-                    </div>
-                  </div>
-                ))}
+              {/* Leaflet Map with Heatmap */}
+              <div className="relative w-full h-96 rounded-lg overflow-hidden border-2 border-border/20">
+                <LeafletHeatmap 
+                  zones={heatmapData as ZoneHeatmapData[]}
+                  height="24rem"
+                />
               </div>
 
               {/* Zone details grid */}

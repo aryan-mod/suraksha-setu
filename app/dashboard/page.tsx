@@ -1085,7 +1085,12 @@ export default function TouristDashboard() {
 
             {/* Health Monitor */}
             <div className="animate-slide-in-right" style={{ animationDelay: "0.2s" }}>
-              <HeartRateMonitor />
+              <HeartRateMonitor 
+                onEmergencyAlert={handleHeartRateEmergency}
+                autoStart={true}
+                alertThreshold={120}
+                criticalThreshold={150}
+              />
             </div>
 
             {/* IoT Sensors */}

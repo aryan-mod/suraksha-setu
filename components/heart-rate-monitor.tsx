@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -33,6 +34,7 @@ export function HeartRateMonitor({
   const [showAlert, setShowAlert] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const { user } = useAuth()
 
   // Simulate heart rate monitoring (in real app, would connect to device/sensor)
   const simulateHeartRate = useCallback(() => {
@@ -81,11 +83,20 @@ export function HeartRateMonitor({
       setCurrentBPM(bpm)
       setHeartRateHistory(prev => [...prev.slice(-29), newData]) // Keep last 30 readings
 
+      // Store reading in database
+      if (user) {
+        storeHeartRateReading(bpm, status)
+      }
+
       // Trigger alert if BPM exceeds threshold
       if (bpm >= alertThreshold && !showAlert) {
         setShowAlert(true)
         if (onEmergencyAlert) {
           onEmergencyAlert({ bpm, location: location || undefined })
+        }
+        // Store emergency alert
+        if (user && bpm >= criticalThreshold) {
+          storeHeartRateReading(bpm, status, true)
         }
       }
     }, 2000) // Update every 2 seconds
@@ -133,6 +144,38 @@ export function HeartRateMonitor({
 
   const dismissAlert = () => {
     setShowAlert(false)
+  }
+
+  // Store heart rate reading in database
+  const storeHeartRateReading = async (bpm: number, status: string, isEmergency = false) => {
+    if (!user) return
+
+    try {
+      const response = await fetch('/api/heartrate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bpm,
+          status,
+          latitude: location?.lat,
+          longitude: location?.lng,
+          isEmergency,
+          timestamp: new Date().toISOString(),
+          deviceInfo: {
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+          }
+        })
+      })
+
+      if (!response.ok) {
+        console.error('Failed to store heart rate reading')
+      }
+    } catch (error) {
+      console.error('Error storing heart rate reading:', error)
+    }
   }
 
   return (

@@ -5,16 +5,23 @@ export async function POST(request: NextRequest) {
   try {
     const heartRateData = await request.json()
 
-    if (!heartRateData.bpm || !heartRateData.userId) {
+    if (!heartRateData.bpm) {
       return NextResponse.json({ error: "Missing required heart rate data" }, { status: 400 })
     }
 
     const supabase = await createClient()
+    
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+    }
 
     const { data, error } = await supabase
       .from("heart_rate_monitoring")
       .insert({
-        user_id: heartRateData.userId,
+        user_id: user.id,
         bpm: heartRateData.bpm,
         status: heartRateData.status || 'normal',
         latitude: heartRateData.latitude,
@@ -22,7 +29,8 @@ export async function POST(request: NextRequest) {
         is_emergency: heartRateData.isEmergency || false,
         device_info: heartRateData.deviceInfo || {},
         metadata: heartRateData.metadata || {},
-        recorded_at: heartRateData.timestamp ? new Date(heartRateData.timestamp).toISOString() : new Date().toISOString(),
+        recorded_at: new Date().toISOString(),
+        client_timestamp: heartRateData.timestamp,
       })
       .select()
       .single()
@@ -36,7 +44,7 @@ export async function POST(request: NextRequest) {
     if (heartRateData.isEmergency) {
       // In real implementation, trigger emergency notification system
       console.log("🚨 HEART RATE EMERGENCY ALERT:", {
-        userId: heartRateData.userId,
+        userId: user.id,
         bpm: heartRateData.bpm,
         location: { lat: heartRateData.latitude, lng: heartRateData.longitude },
         timestamp: new Date().toISOString()
@@ -46,7 +54,7 @@ export async function POST(request: NextRequest) {
       const { error: alertError } = await supabase
         .from("emergency_alerts")
         .insert({
-          user_id: heartRateData.userId,
+          user_id: user.id,
           alert_type: "heart_rate_critical",
           latitude: heartRateData.latitude,
           longitude: heartRateData.longitude,
@@ -78,21 +86,23 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get("userId")
     const limit = Number.parseInt(searchParams.get("limit") || "50")
     const hours = Number.parseInt(searchParams.get("hours") || "24")
 
-    if (!userId) {
-      return NextResponse.json({ error: "Missing userId parameter" }, { status: 400 })
-    }
-
     const supabase = await createClient()
+    
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+    }
     const hoursAgo = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
 
     const { data: heartRateHistory, error } = await supabase
       .from("heart_rate_monitoring")
       .select("*")
-      .eq("user_id", userId)
+      .eq("user_id", user.id)
       .gte("recorded_at", hoursAgo)
       .order("recorded_at", { ascending: false })
       .limit(limit)
