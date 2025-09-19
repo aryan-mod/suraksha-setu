@@ -7,6 +7,18 @@ export async function GET(request: NextRequest) {
     const hours = Number.parseInt(searchParams.get("hours") || "24")
     const type = searchParams.get("type") || "zones" // zones or locations
 
+    // Handle case where Supabase is not configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.log('[v0] Supabase not configured, returning mock heatmap data')
+      return NextResponse.json({
+        success: true,
+        type,
+        data: [],
+        lastUpdated: new Date().toISOString(),
+        message: 'Demo mode: Supabase not configured'
+      })
+    }
+
     const supabase = await createClient()
     const hoursAgo = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
 
@@ -52,6 +64,15 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const { action, data } = await request.json()
+
+    // Handle case where Supabase is not configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.log('[v0] Supabase not configured, skipping zone update')
+      return NextResponse.json({
+        success: false,
+        message: 'Demo mode: Supabase not configured'
+      })
+    }
 
     if (action === "update_zone_safety") {
       const supabase = await createClient()

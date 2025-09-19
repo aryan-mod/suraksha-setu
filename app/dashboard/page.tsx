@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
+import { gsap } from "gsap"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -262,7 +263,7 @@ const SafetyScoreChart = ({ score }: { score: number }) => {
       </ResponsiveContainer>
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-3xl font-bold text-foreground">{score}%</div>
+          <div className="text-3xl font-bold text-foreground safety-score">{score}%</div>
           <div className="text-sm text-muted-foreground">Safety Score</div>
         </div>
       </div>
@@ -773,18 +774,95 @@ export default function TouristDashboard() {
   const [user, setUser] = useState<any>(null)
   const { currentLanguage, translate } = useLanguage()
   const supabase = createClient()
+  const dashboardRef = useRef<HTMLDivElement>(null)
+  const cardsRef = useRef<HTMLDivElement[]>([])
 
   useEffect(() => {
     const checkUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      setUser(user)
-      setIsLoading(false)
+      if (!supabase) {
+        console.log('[v0] Supabase not configured, using mock authentication')
+        setUser(null)
+        setIsLoading(false)
+        return
+      }
+      
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        setUser(user)
+      } catch (error) {
+        console.error('[v0] Auth error:', error)
+        setUser(null)
+      } finally {
+        setIsLoading(false)
+      }
     }
 
     checkUser()
   }, [])
+
+  // GSAP animations for enhanced UI/UX
+  useEffect(() => {
+    if (!isLoading && dashboardRef.current) {
+      // Animate dashboard entrance
+      gsap.fromTo(dashboardRef.current, 
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }
+      )
+
+      // Animate cards with stagger effect
+      const cards = cardsRef.current.filter(Boolean)
+      gsap.fromTo(cards,
+        { opacity: 0, y: 50, scale: 0.9 },
+        { 
+          opacity: 1, 
+          y: 0, 
+          scale: 1, 
+          duration: 0.6, 
+          ease: "back.out(1.7)",
+          stagger: 0.1,
+          delay: 0.3
+        }
+      )
+
+      // Animate safety score with pulsing effect
+      const scoreElements = document.querySelectorAll('.safety-score')
+      scoreElements.forEach(el => {
+        gsap.to(el, {
+          scale: 1.05,
+          duration: 2,
+          repeat: -1,
+          yoyo: true,
+          ease: "power2.inOut"
+        })
+      })
+
+      // Floating animation for emergency button
+      const emergencyBtn = document.querySelector('.emergency-floating')
+      if (emergencyBtn) {
+        gsap.to(emergencyBtn, {
+          y: -10,
+          duration: 2,
+          repeat: -1,
+          yoyo: true,
+          ease: "power2.inOut"
+        })
+      }
+
+      // Animate notification badges
+      const notifications = document.querySelectorAll('.notification-badge')
+      notifications.forEach(notification => {
+        gsap.to(notification, {
+          scale: 1.1,
+          duration: 1,
+          repeat: -1,
+          yoyo: true,
+          ease: "power2.inOut"
+        })
+      })
+    }
+  }, [isLoading])
 
   const userData = {
     name: user?.user_metadata?.full_name || "Alex Johnson",
@@ -868,6 +946,11 @@ export default function TouristDashboard() {
 
   const handleAlertAction = async (id: string) => {
     console.log("[v0] Alert marked as read:", id)
+    if (!supabase) {
+      console.log('[v0] Supabase not configured, skipping alert update')
+      return
+    }
+    
     try {
       if (user?.id) {
         await supabase.from("notifications").update({ is_read: true }).eq("id", id).eq("user_id", user.id)
@@ -879,6 +962,11 @@ export default function TouristDashboard() {
 
   const handleAlertDismiss = async (id: string) => {
     console.log("[v0] Alert dismissed:", id)
+    if (!supabase) {
+      console.log('[v0] Supabase not configured, skipping alert dismissal')
+      return
+    }
+    
     try {
       if (user?.id) {
         await supabase.from("notifications").delete().eq("id", id).eq("user_id", user.id)
@@ -899,7 +987,7 @@ export default function TouristDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" ref={dashboardRef}>
       <EnhancedNavbar user={userData} />
 
       <div className="container mx-auto px-4 py-8 pt-24">
