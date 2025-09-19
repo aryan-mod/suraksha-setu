@@ -2,15 +2,24 @@ import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
 export async function updateSession(request: NextRequest) {
-  console.log("[v0] SUPABASE_URL value:", process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 20) + "...")
-  console.log("[v0] SUPABASE_ANON_KEY value:", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 20) + "...")
+  // Handle potentially swapped environment variables
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.startsWith('https://') 
+    ? process.env.NEXT_PUBLIC_SUPABASE_URL 
+    : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.startsWith('eyJ') 
+    ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY 
+    : process.env.NEXT_PUBLIC_SUPABASE_URL
+
+  console.log("[v0] SUPABASE_URL value:", url?.substring(0, 20) + "...")
+  console.log("[v0] SUPABASE_ANON_KEY value:", key?.substring(0, 20) + "...")
 
   let supabaseResponse = NextResponse.next({
     request,
   })
 
   // Check if Supabase environment variables are available
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  if (!url || !key) {
     console.log("[v0] Supabase environment variables not configured, skipping auth check")
     return supabaseResponse
   }
@@ -18,8 +27,8 @@ export async function updateSession(request: NextRequest) {
   // With Fluid compute, don't put this client in a global environment
   // variable. Always create a new one on each request.
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url!,
+    key!,
     {
       cookies: {
         getAll() {
