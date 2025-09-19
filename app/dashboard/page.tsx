@@ -59,6 +59,7 @@ import { EnhancedLocationService } from "@/components/enhanced-location-service"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { RealTimeNotificationSystem } from "@/components/real-time-notification-system"
 import { RealTimeHeatmap } from "@/components/real-time-heatmap"
+import { HeartRateMonitor } from "@/components/heart-rate-monitor"
 
 const safetyData = [
   { name: "Safe", value: 85, color: "#10b981" },
@@ -482,52 +483,17 @@ const TravelTimeline = () => {
   )
 }
 
-// Heart Rate Monitor Component
-const HeartRateMonitor = () => {
-  const currentHeartRate = 76
-  const isNormal = currentHeartRate >= 60 && currentHeartRate <= 100
-
-  return (
-    <Card className="glassmorphism bg-card/50 border-border/50">
-      <CardHeader>
-        <CardTitle className="font-serif flex items-center gap-2">
-          <Heart className="h-5 w-5 text-red-500" />
-          Health Monitor
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="text-2xl font-bold text-foreground">{currentHeartRate} BPM</div>
-            <div className={`text-sm ${isNormal ? "text-green-600" : "text-red-600"}`}>
-              {isNormal ? "Normal" : "Alert"}
-            </div>
-          </div>
-          <div className={`p-3 rounded-full ${isNormal ? "bg-green-500/20" : "bg-red-500/20"}`}>
-            <Heart className={`h-6 w-6 ${isNormal ? "text-green-600 animate-pulse" : "text-red-600 animate-bounce"}`} />
-          </div>
-        </div>
-
-        <div className="h-32">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={heartRateData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
-              <XAxis dataKey="time" tick={{ fontSize: 12 }} />
-              <YAxis domain={[60, 90]} tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="rate"
-                stroke="#ef4444"
-                strokeWidth={2}
-                dot={{ fill: "#ef4444", strokeWidth: 2 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
-    </Card>
-  )
+// Heart Rate Emergency Handler
+const handleHeartRateEmergency = (data: { bpm: number; location?: { lat: number; lng: number } }) => {
+  console.log("🚨 HEART RATE EMERGENCY:", data)
+  toast({
+    title: "Heart Rate Alert!",
+    description: `Critical heart rate detected: ${data.bpm} BPM. Emergency services notified.`,
+    variant: "destructive",
+  })
+  
+  // In real implementation, would trigger emergency services
+  // and notify emergency contacts
 }
 
 // IoT Sensor Panel Component

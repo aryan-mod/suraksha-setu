@@ -2,6 +2,12 @@
 
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
+import 'leaflet.heat'
+
+// Extend Leaflet types for heat layer
+declare module 'leaflet' {
+  function heatLayer(latlngs: [number, number, number][], options?: any): any
+}
 
 // Fix for default markers in Leaflet with Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -20,6 +26,8 @@ interface LeafletMapProps {
   className?: string
   showAccuracyCircle?: boolean
   onLocationUpdate?: (lat: number, lng: number) => void
+  heatmapData?: Array<[number, number, number]> // [lat, lng, intensity]
+  showHeatmap?: boolean
 }
 
 export default function LeafletMap({
@@ -30,11 +38,14 @@ export default function LeafletMap({
   height = '300px',
   className = '',
   showAccuracyCircle = true,
-  onLocationUpdate
+  onLocationUpdate,
+  heatmapData = [],
+  showHeatmap = false
 }: LeafletMapProps) {
   const mapRef = useRef<L.Map | null>(null)
   const markerRef = useRef<L.Marker | null>(null)
   const accuracyCircleRef = useRef<L.Circle | null>(null)
+  const heatLayerRef = useRef<any>(null)
   const mapContainerRef = useRef<HTMLDivElement>(null)
 
   // Initialize map once
@@ -69,6 +80,7 @@ export default function LeafletMap({
         mapRef.current = null
         markerRef.current = null
         accuracyCircleRef.current = null
+        heatLayerRef.current = null
       }
     }
   }, []) // Empty dependency array - initialize once
@@ -126,6 +138,39 @@ export default function LeafletMap({
     // Center map on location
     mapRef.current.setView(newLatLng, zoom)
   }, [latitude, longitude, accuracy, zoom, showAccuracyCircle])
+
+  // Update heatmap layer
+  useEffect(() => {
+    if (!mapRef.current) return
+
+    // Remove existing heat layer
+    if (heatLayerRef.current) {
+      mapRef.current.removeLayer(heatLayerRef.current)
+      heatLayerRef.current = null
+    }
+
+    // Add new heat layer if enabled and data exists
+    if (showHeatmap && heatmapData.length > 0) {
+      heatLayerRef.current = L.heatLayer(heatmapData, {
+        radius: 20,
+        blur: 15,
+        maxZoom: 17,
+        gradient: {
+          0.0: '#313695',
+          0.1: '#4575b4', 
+          0.2: '#74add1',
+          0.3: '#abd9e9',
+          0.4: '#e0f3f8',
+          0.5: '#ffffcc',
+          0.6: '#fee090',
+          0.7: '#fdae61',
+          0.8: '#f46d43',
+          0.9: '#d73027',
+          1.0: '#a50026'
+        }
+      }).addTo(mapRef.current)
+    }
+  }, [heatmapData, showHeatmap])
 
   return (
     <div
