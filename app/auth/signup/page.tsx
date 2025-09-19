@@ -1,16 +1,15 @@
 "use client"
 
 import type React from "react"
-
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { Shield, MapPin } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Shield, MapPin, AlertCircle } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("")
@@ -19,13 +18,22 @@ export default function SignUpPage() {
   const [fullName, setFullName] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
   const router = useRouter()
+  const { signUp, user, loading, isSupabaseConfigured } = useAuth()
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!loading && user) {
+      router.push("/dashboard")
+    }
+  }, [user, loading, router])
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
+    setSuccess(false)
 
     if (password !== confirmPassword) {
       setError("Passwords do not match")
@@ -33,23 +41,19 @@ export default function SignUpPage() {
       return
     }
 
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
-          data: {
-            full_name: fullName,
-          },
-        },
-      })
-      if (error) throw error
-      router.push("/auth/verify-email")
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
-    } finally {
+    const { error: signUpError } = await signUp(email, password, fullName)
+    
+    if (signUpError) {
+      setError(signUpError)
       setIsLoading(false)
+    } else {
+      setSuccess(true)
+      setIsLoading(false)
+      if (isSupabaseConfigured) {
+        setTimeout(() => router.push("/auth/verify-email"), 2000)
+      } else {
+        setTimeout(() => router.push("/dashboard"), 2000)
+      }
     }
   }
 
@@ -71,6 +75,17 @@ export default function SignUpPage() {
             <CardDescription>Join our safety network today</CardDescription>
           </CardHeader>
           <CardContent>
+            {!isSupabaseConfigured && (
+              <div className="mb-4 p-3 text-sm text-amber-700 bg-amber-50 rounded-md border border-amber-200 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                Demo Mode: Authentication service not configured
+              </div>
+            )}
+            {success && (
+              <div className="mb-4 p-3 text-sm text-green-700 bg-green-50 rounded-md border border-green-200">
+                Account created successfully! {isSupabaseConfigured ? "Check your email for verification." : "Redirecting to dashboard..."}
+              </div>
+            )}
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
@@ -82,6 +97,7 @@ export default function SignUpPage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className="bg-white/50"
+                  disabled={!isSupabaseConfigured}
                 />
               </div>
               <div className="space-y-2">
@@ -94,6 +110,7 @@ export default function SignUpPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="bg-white/50"
+                  disabled={!isSupabaseConfigured}
                 />
               </div>
               <div className="space-y-2">
@@ -105,6 +122,7 @@ export default function SignUpPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="bg-white/50"
+                  disabled={!isSupabaseConfigured}
                 />
               </div>
               <div className="space-y-2">
@@ -116,17 +134,21 @@ export default function SignUpPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="bg-white/50"
+                  disabled={!isSupabaseConfigured}
                 />
               </div>
               {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md border border-red-200">{error}</div>
+                <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md border border-red-200 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  {error}
+                </div>
               )}
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700"
-                disabled={isLoading}
+                disabled={isLoading || !isSupabaseConfigured}
               >
-                {isLoading ? "Creating account..." : "Create Account"}
+                {isLoading ? "Creating account..." : isSupabaseConfigured ? "Create Account" : "Demo Mode - Auth Disabled"}
               </Button>
             </form>
             <div className="mt-6 text-center text-sm">

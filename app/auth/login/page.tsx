@@ -1,16 +1,15 @@
 "use client"
 
 import type React from "react"
-
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { Shield, MapPin } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Shield, MapPin, AlertCircle } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -18,27 +17,27 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { signIn, user, loading, isSupabaseConfigured } = useAuth()
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!loading && user) {
+      router.push("/dashboard")
+    }
+  }, [user, loading, router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-        options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
-        },
-      })
-      if (error) throw error
-      router.push("/dashboard")
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
-    } finally {
+    const { error: signInError } = await signIn(email, password)
+    
+    if (signInError) {
+      setError(signInError)
       setIsLoading(false)
+    } else {
+      router.push("/dashboard")
     }
   }
 
@@ -60,6 +59,12 @@ export default function LoginPage() {
             <CardDescription>Enter your credentials to continue</CardDescription>
           </CardHeader>
           <CardContent>
+            {!isSupabaseConfigured && (
+              <div className="mb-4 p-3 text-sm text-amber-700 bg-amber-50 rounded-md border border-amber-200 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                Demo Mode: Authentication service not configured
+              </div>
+            )}
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -71,6 +76,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="bg-white/50"
+                  disabled={!isSupabaseConfigured}
                 />
               </div>
               <div className="space-y-2">
@@ -82,17 +88,21 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="bg-white/50"
+                  disabled={!isSupabaseConfigured}
                 />
               </div>
               {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md border border-red-200">{error}</div>
+                <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md border border-red-200 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  {error}
+                </div>
               )}
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700"
-                disabled={isLoading}
+                disabled={isLoading || !isSupabaseConfigured}
               >
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? "Signing in..." : isSupabaseConfigured ? "Sign In" : "Demo Mode - Auth Disabled"}
               </Button>
             </form>
             <div className="mt-6 text-center text-sm">

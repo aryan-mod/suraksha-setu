@@ -9,6 +9,7 @@ import "@/lib/i18n"
 import { Suspense } from "react"
 import { LanguageProvider } from "@/components/language-provider"
 import { ThemeProvider } from "@/components/theme-provider"
+import { AuthProvider } from "@/lib/auth-context"
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
@@ -31,9 +32,11 @@ export default function ClientLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`font-sans ${playfairDisplay.variable} ${sourceSansPro.variable} ${GeistMono.variable}`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <LanguageProvider>
-            <Suspense fallback={null}>{children}</Suspense>
-          </LanguageProvider>
+          <AuthProvider>
+            <LanguageProvider>
+              <Suspense fallback={null}>{children}</Suspense>
+            </LanguageProvider>
+          </AuthProvider>
         </ThemeProvider>
         <Analytics />
         {/* Added global accessibility styles */}
